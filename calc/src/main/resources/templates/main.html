@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radar Chart</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #d3ecf8;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #33475b; /* Тёмно-серо-синий */
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+        .panel h2 {
+            font-size: 16px; /* Уменьшение размера заголовков */
+            margin-bottom: 10px;
+            text-align: center; /* Центровка заголовка панели */
+        }
+        .panel h3 {
+            margin-top: 0; /* Убираем лишний отступ сверху */
+        }
+
+        .panel input {
+            width: auto; /* Убираем фиксированную ширину для полей ввода */
+        }
+
+        .block {
+            background-color: #5a6e73; /* Мягкий серо-синий */
+            color: #ffffff;
+            padding: 12px;
+            width: calc(33% - 20px); /* Задает ширину блоков, оставляя отступы */
+            margin: 10px; /* Отступ вокруг каждого блока */
+            border-radius: 6px;
+            box-sizing: border-box; /* Учитывает отступы и границы в ширине */
+        }
+
+        .panel {
+            flex: 1 1 300px;
+            height: 690px;
+            max-width: 400px;
+            background-color: #ffffff;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            word-wrap: break-word;
+            overflow: auto;
+            font-size: 14px;
+            line-height: 1.5;
+            text-align: left;
+        }
+
+        .panel input[type="text"],
+        .panel input[type="number"] {
+            width: 100%; /* Полная ширина для всех полей ввода */
+            box-sizing: border-box;
+            padding: 5px;
+            font-size: 14px;
+        }
+
+        .input-group, .formula-group {
+            display: flex; /* Убедитесь, что элементы располагаются в линию */
+            align-items: center; /* Выравнивание по центру по вертикали для группы ввода и формулы */
+            margin-bottom: 12px;
+        }
+
+        label {
+            font-size: 12px;
+            margin-right: 10px;
+            font-weight: 600;
+            color: #4a4a4a;
+        }
+
+        input[type="number"] {
+            padding: 8px;
+            margin-right: 8px;
+            width: 70px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="number"]:focus {
+            border-color: #5a6e73;
+            box-shadow: 0px 0px 4px #5a6e73;
+            outline: none;
+            width: 40px;
+        }
+
+        .button-container {
+            display: flex; /* Убедитесь, что кнопки располагаются в линию */
+            gap: 10px; /* Отступ между кнопками */
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            background-color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            color: rgb(0, 0, 0);
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            border: 2px solid black;
+        }
+
+        .cool-formula {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #metricsFields {
+            flex: 2;
+        }
+
+        #vozmuscheniya {
+            flex: 2;
+        }
+
+        #maxFunc {
+            flex: 1;
+        }
+
+        #additionalRows {
+            flex: 2;
+        }
+
+        .input_container {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+    </style>
+</head>
+<body>
+
+<h1>Последствия выброса</h1>
+<div class="container">
+
+
+
+    <!-- Основные параметры -->
+    <div class="input_container">
+        <button class="accordion">Начальные и минимальные значения</button>
+        <div class="panel" id="metricsFields">
+
+        </div>
+
+        <!-- Ввод возмущений -->
+        <button class="accordion" >Возмущения</button>
+        <div class="panel" id="vozmuscheniya">
+            <h3>Ввод коэффициентов для возмущений:</h3>
+
+            <div class="formula-group cool-formula">
+                <label>Опасные вещества на объекте (q1):</label>
+                <div>y </div>
+                <div>= </div>
+                <input type="number" id="q1_a" placeholder="a" value="1" min = "0">
+                <div>+</div>
+                <input type="number" id="q1_b" placeholder="b" value="2" min = "0">
+                <div>sin</div>
+                <div>(</div>
+                <input type="number" id="q1_c" placeholder="c" value="3" min = "0">
+                <div>x </div>
+                <div>+ </div>
+                <input type="number" id="q1_d" placeholder="d" value="4" min = "0">
+                <div>)</div>
+            </div>
+
+            <div class="formula-group cool-formula">
+                <label>Количество персонала (q2):</label>
+                <div>y </div>
+                <div>=</div>
+                <input type="number" id="q2_a" placeholder="a" value="1" min = "0">
+                <div>+</div>
+                <input type="number" id="q2_b" placeholder="b" value="2" min = "0">
+                <div>sin</div>
+                <div>(</div>
+                <input type="number" id="q2_c" placeholder="c" value="3" min = "0">
+                <div>x </div>
+                <div>+</div>
+                <input type="number" id="q2_d" placeholder="d" value="4" min = "0">
+                <div>)</div>
+            </div>
+
+            <div class="formula-group cool-formula">
+                <label>Скорость ветра (q3):</label>
+                <div>y</div>
+                <div>=</div>
+                <input type="number" id="q3_a" placeholder="a" value="1" min = "0">
+                <div>x</div>
+                <div>^</div>
+                <div>0.5</div>
+                <div>+</div>
+                <input type="number" id="q3_b" placeholder="b" value="2" min = "0">
+            </div>
+
+            <div class="formula-group cool-formula">
+                <label>Температура воздуха (q4):</label>
+                <div>y</div>
+                <div> =</div>
+                <input type="number" id="q4_a" placeholder="a" value="1" min = "0">
+                <div>+</div>
+                <input type="number" id="q4_b" placeholder="b" value="2" min = "0">
+                <div>step</div>
+                <div>(</div>
+                <input type="number" id="q4_c" placeholder="c" value="3" min = "0">
+                <div>)</div>
+            </div>
+
+            <div class="formula-group cool-formula">
+                <label>Время до начала оповещения (q5):</label>
+                <div>y</div>
+                <div>=</div>
+                <input type="number" id="q5_a" placeholder="a" value="1" min = "0">
+                <div>x</div>
+                <div>^</div>
+                <div>0.5</div>
+                <div>+</div>
+                <input type="number" id="q5_b" placeholder="b" value="2" min = "0">
+            </div>
+        </div>
+
+        <button class="accordion">Максимальные значения уровня функциональных возможностей (L*)</button>
+        <div class="panel" id="maxFunc"></div>
+
+        <!-- Новый аккордеон для набора строк с a0, a1, a2, a3 -->
+        <button class="accordion">Полиномы</button>
+        <div class="panel" id="additionalRows"></div>
+    </div>
+
+    <!-- Кнопки управления -->
+    <div style="margin-top: 20px; display: flex; justify-content: space-between; width: 900px;">
+        <button onclick="generateChart()">Сгенерировать диаграмму</button>
+        <button onclick="resetDefaults()">Сбросить</button>
+        <button onclick="clearInputs()">Очистить</button>
+        <button onclick="exportChart()">Экспортировать график</button>
+        <button onclick="deleteChart()">Удалить график</button>
+        <button onclick="togglePage()">Переключить страницу</button>
+    </div>
+
+    <br>
+    <br>
+    <div style="width: 100%;"></div>
+    <!-- Место для отображения диаграммы (по умолчанию скрыто) -->
+    <img id="radarChart" alt="Radar Chart" style="display:none; margin-top: 20px;">
+</div>
+
+<script>
+    const defaultValues = {
+        metrics: [0.7, 0.3, 0.4, 0.5, 0.7, 0.8, 0.4, 0.4, 0.4, 0.6, 0.8, 0.8, 0.5, 0.6, 0.3], // Значения по умолчанию для всех метрик
+        minMetrics: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        maxFunc: [3, 4, 5, 5, 3, 5, 4, 5, 5, 4, 7, 3, 6, 3, 4],
+        action: 'mode1',
+        disturbances: {
+            q1: { a: 0.5, b: 1, c: 2, d: 0 },
+            q2: { a: 0.3, b: 0.8, c: 2, d: 0.75 },
+            q3: { a: 0.2, b: 0.5 },
+            q4: { a: 0.1, b: 0.3, c: 0.5 },
+            q5: { a: 0.4, b: 0.6 }
+        },
+        additionalRows: {
+            f1: { a0: 4, a1: 1, a2: 2, a3: 10 },
+            f2: { a0: 10, a1: 9, a2: 6, a3: 6 },
+            f3: { a0: 3, a1: 30, a2: 8, a3: 6 },
+            f4: { a0: 2, a1: 7, a2: 1, a3: 4 },
+            f5: { a0: 5, a1: 1, a2: 6, a3: 7 },
+            f6: { a0: 3, a1: 7, a2: 7, a3: 7 },
+            f7: { a0: 1, a1: 10, a2: 7, a3: 8 },
+            f8: { a0: 4, a1: 9, a2: 8, a3: 4 },
+            f9: { a0: 9, a1: 8, a2: 7, a3: 4 },
+            f10: { a0: 8, a1: 7, a2: 4, a3: 8 },
+            f11: { a0: 6, a1: 7, a2: 4, a3: 1 },
+            f12: { a0: 5, a1: 1, a2: 2, a3: 4 },
+            f13: { a0: 7, a1: 8, a2: 3, a3: 5 },
+            f14: { a0: 1, a1: 1, a2: 2, a3: 5 },
+            f15: { a0: 6, a1: 8, a2: 4, a3: 1 },
+            f16: { a0: 8, a1: 2, a2: 9, a3: 4 },
+            f17: { a0: 7, a1: 3, a2: 4, a3: 5 },
+            f18: { a0: 5, a1: 6, a2: 4, a3: 7 },
+            f19: { a0: 3, a1: 5, a2: 4, a3: 6 },
+            f20: { a0: 6, a1: 9, a2: 4, a3: 5 },
+            f21: { a0: 9, a1: 5, a2: 6, a3: 6 },
+            f22: { a0: 6, a1: 3, a2: 7, a3: 6 },
+            f23: { a0: 5, a1: 1, a2: 4, a3: 7 },
+            f24: { a0: 8, a1: 1, a2: 5, a3: 3 },
+            f25: { a0: 3, a1: 5, a2: 6, a3: 6 },
+            f26: { a0: 2, a1: 1, a2: 2, a3: 7 },
+            f27: { a0: 6, a1: 8, a2: 1, a3: 4 },
+            f28: { a0: 3, a1: 2, a2: 3, a3: 4 },
+            f29: { a0: 6, a1: 3, a2: 5, a3: 3 },
+            f30: { a0: 6, a1: 4, a2: 6, a3: 1 },
+            f31: { a0: 9, a1: 5, a2: 5, a3: 7 },
+            f32: { a0: 8, a1: 8, a2: 4, a3: 6 },
+            f33: { a0: 8, a1: 8, a2: 3, a3: 9 },
+            f34: { a0: 6, a1: 9, a2: 2, a3: 7 },
+            f35: { a0: 6, a1: 7, a2: 4, a3: 9 },
+            f36: { a0: 1, a1: 2, a2: 5, a3: 6 },
+            f37: { a0: 5, a1: 2, a2: 6, a3: 8 },
+            f38: { a0: 3, a1: 8, a2: 9, a3: 8 },
+            f39: { a0: 3, a1: 3, a2: 5, a3: 8 },
+            f40: { a0: 5, a1: 5, a2: 3, a3: 4 },
+            f41: { a0: 5, a1: 2, a2: 4, a3: 2 },
+            f42: { a0: 2, a1: 4, a2: 2, a3: 8 },
+            f43: { a0: 9, a1: 4, a2: 5, a3: 3 },
+            f44: { a0: 6, a1: 7, a2: 5, a3: 5 },
+            f45: { a0: 4, a1: 5, a2: 3, a3: 9 },
+            f46: { a0: 5, a1: 4, a2: 4, a3: 2 },
+            f47: { a0: 9, a1: 7, a2: 1, a3: 6 },
+            f48: { a0: 6, a1: 8, a2: 7, a3: 8 },
+            f49: { a0: 7, a1: 5, a2: 4, a3: 5 },
+            f50: { a0: 9, a1: 1, a2: 9, a3: 2 },
+            f51: { a0: 7, a1: 2, a2: 7, a3: 9 },
+            f52: { a0: 6, a1: 4, a2: 9, a3: 3 },
+            f53: { a0: 5, a1: 3, a2: 6, a3: 6 },
+            f54: { a0: 2, a1: 3, a2: 9, a3: 5 },
+            f55: { a0: 7, a1: 2, a2: 8, a3: 5 },
+            f56: { a0: 8, a1: 6, a2: 8, a3: 7 },
+            f57: { a0: 7, a1: 7, a2: 7, a3: 6 },
+            f58: { a0: 9, a1: 1, a2: 3, a3: 2 },
+            f59: { a0: 8, a1: 5, a2: 8, a3: 5 },
+            f60: { a0: 3, a1: 6, a2: 1, a3: 9 },
+            f61: { a0: 3, a1: 3, a2: 1, a3: 7 },
+            f62: { a0: 2, a1: 1, a2: 2, a3: 5 },
+            f63: { a0: 1, a1: 4, a2: 7, a3: 9 },
+            f64: { a0: 7, a1: 4, a2: 8, a3: 1 },
+            f65: { a0: 8, a1: 6, a2: 4, a3: 5 },
+            f66: { a0: 9, a1: 7, a2: 6, a3: 2 },
+            f67: { a0: 9, a1: 4, a2: 3, a3: 1 },
+            f68: { a0: 1, a1: 7, a2: 5, a3: 3 },
+            f69: { a0: 4, a1: 8, a2: 3, a3: 7 },
+            f70: { a0: 10, a1: 5, a2: 8, a3: 1 },
+            f71: { a0: 7, a1: 5, a2: 2, a3: 5 },
+            f72: { a0: 5, a1: 3, a2: 6, a3: 8 },
+            f73: { a0: 5, a1: 3, a2: 7, a3: 2 },
+            f74: { a0: 3, a1: 4, a2: 9, a3: 9 },
+            f75: { a0: 9, a1: 8, a2: 3, a3: 6 },
+            f76: { a0: 3, a1: 3, a2: 7, a3: 3 },
+            f77: { a0: 9, a1: 6, a2: 9, a3: 5 },
+            f78: { a0: 9, a1: 6, a2: 5, a3: 8 },
+            f79: { a0: 5, a1: 6, a2: 7, a3: 6 },
+            f80: { a0: 5, a1: 8, a2: 4, a3: 9 },
+            f81: { a0: 4, a1: 4, a2: 7, a3: 1 },
+            f82: { a0: 7, a1: 6, a2: 6, a3: 9 },
+            f83: { a0: 8, a1: 6, a2: 9, a3: 8 },
+            f84: { a0: 3, a1: 4, a2: 8, a3: 9 },
+            f85: { a0: 2, a1: 8, a2: 1, a3: 6 },
+            f86: { a0: 2, a1: 2, a2: 7, a3: 2 },
+            f87: { a0: 9, a1: 2, a2: 3, a3: 8 },
+            f88: { a0: 9, a1: 9, a2: 7, a3: 5 },
+            f89: { a0: 9, a1: 3, a2: 6, a3: 6 },
+            f90: { a0: 7, a1: 7, a2: 9, a3: 9 },
+            f91: { a0: 6, a1: 8, a2: 6, a3: 9 },
+            f92: { a0: 1, a1: 3, a2: 5, a3: 1 },
+            f93: { a0: 7, a1: 4, a2: 8, a3: 6 },
+            f94: { a0: 7, a1: 3, a2: 2, a3: 2 },
+            f95: { a0: 5, a1: 2, a2: 2, a3: 7 },
+            f96: { a0: 7, a1: 4, a2: 1, a3: 3 },
+            f97: { a0: 6, a1: 5, a2: 1, a3: 2 },
+            f98: { a0: 6, a1: 2, a2: 5, a3: 9 }
+        }
+    };
+
+    const metricsList = [
+        { id: 'L1', name: 'Время испарения' },
+        { id: 'L2', name: 'Время ликвидации' },
+        { id: 'L3', name: 'Изменяемость' },
+        { id: 'L4', name: 'Площадь заражения' },
+        { id: 'L5', name: 'Время подхода' },
+        { id: 'L6', name: 'Пораженные от первичного' },
+        { id: 'L7', name: 'Пораженные от вторичного' },
+        { id: 'L8', name: 'Госпитализированные' },
+        { id: 'L9', name: 'Техника' },
+        { id: 'L10', name: 'Количество растворов' },
+        { id: 'L11', name: 'Количество сил' },
+        { id: 'L12', name: 'Количесвто средств' },
+        { id: 'L13', name: 'Эффективность системы' },
+        { id: 'L14', name: 'Количество убежищ' },
+        { id: 'L15', name: 'Опасность' },
+    ];
+
+    // Генерация полей для метрик
+    function generateMetricFields() {
+        const metricsFields = document.getElementById('metricsFields');
+        metricsFields.innerHTML = '<h3>Начальные и минимальные значения</h3>'; // Очищаем поле
+
+        metricsList.forEach((metric, index) => {
+            const div = document.createElement('div');
+            div.className = 'metric-container';
+
+            div.innerHTML = `
+                <div class="input-group">
+                    <label>${metric.name} (${metric.id}):</label>
+                    <input type="number" id="metric${index + 1}" placeholder="${metric.id}" value="${defaultValues.metrics[index]}" min="0" max="1">
+                    <label>Min ${metric.id}:</label>
+                    <input type="number" id="minMetric${index + 1}" placeholder="Min ${metric.id}" value="${defaultValues.minMetrics[index]}" min="0" max="1">
+                </div>
+            `;
+
+            metricsFields.appendChild(div);
+        });
+    }
+
+    // Генерация строк с коэффициентами (a0, a1, a2, a3)
+    function generateAdditionalRows() {
+        const additionalRows = document.getElementById('additionalRows');
+        additionalRows.innerHTML = '<h3>Полиномы</h3>'; // Очищаем поле
+
+        for (let i = 1; i <= 98; i++) {
+            const div = document.createElement('div');
+            div.className = 'input-group';
+
+            // Доступ к значениям из additionalRows[f{i}]
+            const a0 = defaultValues.additionalRows[`f${i}`].a0;
+            const a1 = defaultValues.additionalRows[`f${i}`].a1;
+            const a2 = defaultValues.additionalRows[`f${i}`].a2;
+            const a3 = defaultValues.additionalRows[`f${i}`].a3;
+
+            div.innerHTML = `
+             <label>f${i}:</label>
+             <input type="number" id="a0_row${i}" value="${a0}" min="1" max="9" placeholder="a0"> <div>+</div>
+             <input type="number" id="a1_row${i}" value="${a1}" min="1" max="9" placeholder="a1"> <div>x</div> <div>+</div>
+             <input type="number" id="a2_row${i}" value="${a2}" min="1" max="9" placeholder="a2"> <div>x^2</div> <div>+</div>
+             <input type="number" id="a3_row${i}" value="${a3}" min="1" max="9" placeholder="a3"> <div>x^3 </div>
+          `;
+
+            additionalRows.appendChild(div);
+        }
+
+    }
+
+    function generateMaxFunc() {
+        const maxFuncs = document.getElementById('maxFunc');
+        maxFuncs.innerHTML = '<h3>Максимальные значения уровня функциональных возможностей (L*)</h3>'; // Очищаем поле
+
+        metricsList.forEach((metric, index) => {
+            const div = document.createElement('div');
+            div.className = 'metric-container';
+
+            div.innerHTML = `
+                <div class="input-group">
+                    <label>${metric.name} (${metric.id}*):</label>
+                    <input type="number" id="maxFunc${index + 1}" placeholder="${metric.id}*" value="${defaultValues.maxFunc[index]}" min="1">
+                </div>
+            `;
+
+            maxFuncs.appendChild(div);
+        });
+    }
+
+
+    // Инициализация при загрузке страницы
+    window.onload = function() {
+        generateMetricFields();
+        generateMaxFunc();
+        generateAdditionalRows();
+        resetDefaults();
+        setupAccordion();
+    };
+
+    // Переменная для хранения текущего режима
+    let currentMode = 1;
+
+    // Функция для переключения режимов
+    function toggleModes() {
+
+        let variable = 1;
+        if (currentMode === 1){
+            variable = 2;
+        } else {
+            variable = 1;
+        }
+
+        currentMode = currentMode === 1 ? 2 : 1; // Переключаемся между 1 и 2
+        document.getElementById('modeDisplay').innerText = `Текущий режим: Режим ${currentMode}`;
+        document.getElementById('toggleModeBtn').innerText = `Переключить на Режим ${variable}`;
+        defaultValues.action = currentMode === 1 ? 'mode1' : 'mode2'; // Обновляем действие в JSON
+    }
+
+    function navigateToLab2() {
+        window.location.href = "lab2.html"; // Указываем путь к целевой странице
+    }
+
+    // Генерация диаграммы
+    function generateChart() {
+        const metrics = [];
+        const minMetrics = [];
+        const maxFuncs = [];
+
+        // Собираем значения метрик в массив
+        for (let i = 1; i <= 15; i++) {
+            metrics.push(document.getElementById(`metric${i}`).value);
+            minMetrics.push(document.getElementById(`minMetric${i}`).value);
+            maxFuncs.push(document.getElementById(`maxFunc${i}`).value);
+        }
+
+
+        // Собираем значения для возмущений
+        const disturbances = {
+            q1: {
+                a: document.getElementById('q1_a').value,
+                b: document.getElementById('q1_b').value,
+                c: document.getElementById('q1_c').value,
+                d: document.getElementById('q1_d').value
+            },
+            q2: {
+                a: document.getElementById('q2_a').value,
+                b: document.getElementById('q2_b').value,
+                c: document.getElementById('q2_c').value,
+                d: document.getElementById('q2_d').value
+            },
+            q3: {
+                a: document.getElementById('q3_a').value,
+                b: document.getElementById('q3_b').value
+            },
+            q4: {
+                a: document.getElementById('q4_a').value,
+                b: document.getElementById('q4_b').value,
+                c: document.getElementById('q4_c').value
+            },
+            q5: {
+                a: document.getElementById('q5_a').value,
+                b: document.getElementById('q5_b').value
+            }
+        };
+
+        const additionalRows = {};
+        for (let i = 1; i <= 98; i++) {
+            additionalRows[`f${i - 1}`] = {
+                a0: document.getElementById(`a0_row${i}`).value,
+                a1: document.getElementById(`a1_row${i}`).value,
+                a2: document.getElementById(`a2_row${i}`).value,
+                a3: document.getElementById(`a3_row${i}`).value
+            };
+        }
+
+        const metricsName = metricsList.map((metric, index) => (
+            metric.name
+        ));
+
+
+        console.log(maxFuncs);
+
+        // Формируем параметры для запроса
+        const data = {
+            metrics: metrics,
+            metricsName: metricsName,
+            minMetrics: minMetrics,
+            maxFuncs: maxFuncs,
+            disturbances: disturbances,
+            additionalRows: additionalRows,
+            action: defaultValues.action // Добавляем действие в JSON
+        };
+
+
+        // Отправляем запрос на сервер
+        fetch('http://localhost:8080/radar-chart', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+            .then(response => response.blob())  // Получаем бинарные данные (blob) из ответа
+            .then(blob => {
+                const imageUrl = URL.createObjectURL(blob);  // Создаем URL для изображения
+                document.getElementById('radarChart').style.display = 'block';  // Показываем изображение
+                document.getElementById('radarChart').src = imageUrl;  // Устанавливаем изображение
+            })
+            .catch(error => console.error('Error fetching radar chart:', error));
+    }
+
+    // Функция сброса всех параметров к дефолтным значениям
+    function resetDefaults() {
+        for (let i = 1; i <= 15; i++) {
+            document.getElementById(`metric${i}`).value = defaultValues.metrics[i - 1];
+            document.getElementById(`minMetric${i}`).value = defaultValues.minMetrics[i - 1];
+            document.getElementById(`maxFunc${i}`).value = defaultValues.maxFunc[i - 1];
+        }
+
+        document.getElementById('q1_a').value = defaultValues.disturbances.q1.a;
+        document.getElementById('q1_b').value = defaultValues.disturbances.q1.b;
+        document.getElementById('q1_c').value = defaultValues.disturbances.q1.c;
+        document.getElementById('q1_d').value = defaultValues.disturbances.q1.d;
+
+        document.getElementById('q2_a').value = defaultValues.disturbances.q2.a;
+        document.getElementById('q2_b').value = defaultValues.disturbances.q2.b;
+        document.getElementById('q2_c').value = defaultValues.disturbances.q2.c;
+        document.getElementById('q2_d').value = defaultValues.disturbances.q2.d;
+
+        document.getElementById('q3_a').value = defaultValues.disturbances.q3.a;
+        document.getElementById('q3_b').value = defaultValues.disturbances.q3.b;
+
+        document.getElementById('q4_a').value = defaultValues.disturbances.q4.a;
+        document.getElementById('q4_b').value = defaultValues.disturbances.q4.b;
+        document.getElementById('q4_c').value = defaultValues.disturbances.q4.c;
+
+        document.getElementById('q5_a').value = defaultValues.disturbances.q5.a;
+        document.getElementById('q5_b').value = defaultValues.disturbances.q5.b;
+
+        // Сбрасываем доп. строки
+        for (let i = 1; i <= 98; i++) {
+            document.getElementById(`a0_row${i}`).value = defaultValues.additionalRows[`f${i}`].a0;
+            document.getElementById(`a1_row${i}`).value = defaultValues.additionalRows[`f${i}`].a1;
+            document.getElementById(`a2_row${i}`).value = defaultValues.additionalRows[`f${i}`].a2;
+            document.getElementById(`a3_row${i}`).value = defaultValues.additionalRows[`f${i}`].a3;
+        }
+    }
+
+    // Функция для очистки всех инпутов
+    function clearInputs() {
+        for (let i = 1; i <= 15; i++) {
+            document.getElementById(`metric${i}`).value = '';
+            document.getElementById(`minMetric${i}`).value = '';
+            document.getElementById(`maxFunc${i}`).value = '';
+        }
+
+        document.getElementById('q1_a').value = '';
+        document.getElementById('q1_b').value = '';
+        document.getElementById('q1_c').value = '';
+        document.getElementById('q1_d').value = '';
+
+        document.getElementById('q2_a').value = '';
+        document.getElementById('q2_b').value = '';
+        document.getElementById('q2_c').value = '';
+        document.getElementById('q2_d').value = '';
+
+        document.getElementById('q3_a').value = '';
+        document.getElementById('q3_b').value = '';
+
+        document.getElementById('q4_a').value = '';
+        document.getElementById('q4_b').value = '';
+        document.getElementById('q4_c').value = '';
+
+        document.getElementById('q5_a').value = '';
+        document.getElementById('q5_b').value = '';
+
+        // Очищаем доп. строки
+        for (let i = 1; i <= 98; i++) {
+            document.getElementById(`a0_row${i}`).value = '';
+            document.getElementById(`a1_row${i}`).value = '';
+            document.getElementById(`a2_row${i}`).value = '';
+            document.getElementById(`a3_row${i}`).value = '';
+        }
+    }
+
+    // Экспорт графика (сохранение изображения)
+    function exportChart() {
+        const chartImg = document.getElementById('radarChart');
+
+        if (chartImg.src) {
+            const link = document.createElement('a');
+            link.href = chartImg.src;
+            link.download = 'radar_chart.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else {
+            alert('Сначала сгенерируйте график!')
+        }
+    }
+
+    // Аккордеон для раскрытия панелей
+    function setupAccordion() {
+        const accordions = document.getElementsByClassName('accordion');
+        for (let i = 0; i < accordions.length; i++) {
+            accordions[i].style.display = 'none'; // Скрываем кнопки аккордеона
+        }
+    }
+
+    function togglePage() {
+        // Получаем текущий URL
+        const currentPage = window.location.pathname;
+
+        // Проверяем, на какой странице мы сейчас
+        if (currentPage.endsWith("index.html") || currentPage.endsWith("/")) {
+            // Если это main.ftlh, переходим на lab2.html
+            window.location.href = "lab2.html";
+        } else if (currentPage.endsWith("lab2.html")) {
+            // Если это lab2.html, переходим обратно на main.ftlh
+            window.location.href = "index.html";
+        }
+    }
+
+    function deleteChart() {
+        document.getElementById('radarChart').style.display = 'none';
+    }
+</script>
+
+</body>
+</html>

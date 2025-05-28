@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  model1:
+    build: ./calc
+    container_name: model1
+    ports:
+      - "8080:8080"
+    networks:
+      - my_network
+
+  nginx:
+    build: ./front
+    container_name: nginx
+    ports:
+      - "80:80"
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    driver: bridge
