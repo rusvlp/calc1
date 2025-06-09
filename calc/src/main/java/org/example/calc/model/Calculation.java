@@ -1,5 +1,9 @@
 package org.example.calc.model;
 
+import org.apache.commons.math3.analysis.polynomials.PolynomialFunction;
+import org.apache.commons.math3.fitting.PolynomialCurveFitter;
+import org.apache.commons.math3.fitting.WeightedObservedPoints;
+
 import java.util.*;
 
 public class Calculation {
@@ -8,6 +12,8 @@ public class Calculation {
     private final List<Integer> Lmaxs;
     private final Map<String, Map<String, Double>> disturbances;
     private final Map<String, Map<String, Double>> additionalRows;
+    public List<PolynomialFunction> functions = new ArrayList<>();
+
 
     public Calculation(List<Double> metrics, List<Double> minMetrics, List<Integer> Lmaxs, Map<String, Map<String, Double>> disturbances, Map<String, Map<String, Double>> additionalRows) {
         this.metrics = metrics;
@@ -364,5 +370,56 @@ public class Calculation {
         });
 
         return new TreeMap<>(normalizedMap);
+    }
+
+    public Map<Double, List<Double>> approximate(Map<Double, List<Double>> source) {
+
+        List<Map<Double, Double>> res = new ArrayList<>();
+
+        int count = source.get(source.keySet().stream().findFirst().get()).size();
+
+        for (int i = 0; i < count; i++) {
+            res.add(new HashMap<>());
+        }
+
+        Set<Double> sourceKeys = source.keySet();
+
+        for (Double key : sourceKeys) {
+            for (int i = 0; i < count; i++) {
+                res.get(i).put(key, source.get(key).get(i));
+            }
+        }
+
+
+        for (Map<Double, Double> map : res) {
+            WeightedObservedPoints obs = new WeightedObservedPoints();
+            map.forEach((key, value) -> {
+                obs.add(key, value);
+            });
+            PolynomialCurveFitter fitter = PolynomialCurveFitter.create(2);
+            double[] coeffs = fitter.fit(obs.toList());
+            functions.add( new PolynomialFunction(coeffs));
+        }
+
+        Map<Double, List<Double>> resultMap = new HashMap<>();
+        for (double d = 0; d <= 1.0; d += 0.01) {
+            List<Double> currentValues = new ArrayList<>();
+            for (PolynomialFunction function : functions) {
+                currentValues.add(function.value(d));
+            }
+            resultMap.put(d, currentValues);
+        }
+
+
+        return resultMap;
+    }
+
+
+    public List<String> getFunctionsNames() {
+        List<String> lst = new ArrayList<>();
+        for (PolynomialFunction function : functions) {
+            lst.add("y = " + function.toString());
+        }
+        return lst;
     }
 }

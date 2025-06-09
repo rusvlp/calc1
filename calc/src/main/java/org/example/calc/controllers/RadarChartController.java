@@ -26,6 +26,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,10 +35,14 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class RadarChartController {
 
+   final int chartWidth = 600;
+   final int chartHeight = 600;
+
     @PostMapping("/radar-chart")
     public ResponseEntity<byte[]> getRadarChart(
             @RequestBody RadarChartRequest params
     ) throws IOException {
+
 
         String action = params.getAction();
         System.out.println("action: " + action);
@@ -73,11 +78,10 @@ public class RadarChartController {
         System.out.println(calculatedMetrics);
 
         // Каждая диаграмма будет занимать 600x600 пикселей
-        int chartWidth = 600;
-        int chartHeight = 600;
+
 
         // Расчет итоговой высоты изображения: одна диаграмма под другой
-        int totalHeight = chartHeight * (calculatedMetrics.size() + 1); // +1 для линейного графика
+        int totalHeight = chartHeight * (calculatedMetrics.size() + 3); // +1 для линейного графика
         BufferedImage combinedImage = new BufferedImage(chartWidth, totalHeight, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = combinedImage.createGraphics();
 
@@ -176,8 +180,13 @@ public class RadarChartController {
         }
 
         BufferedImage lineChartImage = lineChart.createBufferedImage(chartWidth, chartHeight);
+        BufferedImage approximatedImage = getApproximated(metrics, minMetrics, maxFuncs, disturbances, additionalRows, action, calc);
+        BufferedImage analyticsFunctions = getAnalyticsFunctions(calc);
         g2d.drawImage(lineChartImage, 0, y, null);
-
+        y += chartHeight;
+        g2d.drawImage(approximatedImage, 0, y, null);
+        y += chartHeight;
+        g2d.drawImage(analyticsFunctions, 0, y, null);
         g2d.dispose();
 
         // Конвертация итогового изображения в байты
@@ -190,9 +199,124 @@ public class RadarChartController {
         headers.setContentType(org.springframework.http.MediaType.IMAGE_PNG);
         headers.setContentLength(imageBytes.length);
 
+        List<String> lst = calc.getFunctionsNames();
+        for (String name : lst) {
+            System.out.println("y = " + name);
+        }
         // Возвращаем итоговое изображение
         return new ResponseEntity<>(imageBytes, headers, HttpStatus.OK);
     }
 
+
+    private BufferedImage getAnalyticsFunctions(Calculation calculation) {
+        List<String> lines = calculation.getFunctionsNames();
+        List<String> withFirst = new ArrayList<>();
+        withFirst.add("Функции аппроскимации");
+        withFirst.addAll(lines);
+        BufferedImage image = new BufferedImage(chartWidth, chartHeight, BufferedImage.TYPE_INT_ARGB);
+        drawTextList(image, withFirst, 0, 0);
+        return image;
+    }
+
+    private BufferedImage getApproximated(List<Double> metrics,
+                                          List<Double> minMetrics,
+                                          List<Integer> Lmaxs,
+                                          Map<String, Map<String, Double>> disturbances,
+                                          Map<String, Map<String, Double>> additionalRows,
+                                          String action,
+                                          Calculation calculation) {
+
+        Map<Double, List<Double>> calculatedMetrics;
+        Calculation calc;
+
+        calc = calculation;
+        calculatedMetrics = calc.calculateMetrics(action);
+        calculatedMetrics = calc.approximate(calculatedMetrics);
+        DefaultCategoryDataset lineDataset = new DefaultCategoryDataset();
+        Double[] tValues = calculatedMetrics.keySet()
+                .stream()
+                .sorted()
+                .toArray(Double[]::new);
+
+        // Заполняем набор данных для линейного графика
+        for (double t : tValues) {
+            List<Double> liList = calculatedMetrics.get(t);
+            if (liList != null) {
+                for (int i = 0; i < 15; i++) { // Используем i от 0 до 14 для 15 переменных
+                    if (i < liList.size()) { // Проверяем, есть ли значение для этого индекса
+                        double liValue = liList.get(i);
+                        lineDataset.addValue(liValue, "L" + (i + 1), String.valueOf(t));
+                    }
+                }
+            }
+        }
+
+
+        // Создание линейного графика
+        JFreeChart lineChart = ChartFactory.createLineChart(
+                "Зависимость Li от t (аппроксимация)", // заголовок
+                "t", // метка оси X
+                "Li", // метка оси Y
+                lineDataset, // набор данных
+                PlotOrientation.VERTICAL, // ориентация графика
+                true,
+                true,
+                false
+        );
+
+        // Настройка линейного графика
+        lineChart.setBackgroundPaint(Color.white);
+
+        // Настройка рендера для кастомизации линий
+        CategoryPlot plot = lineChart.getCategoryPlot();
+        LineAndShapeRenderer renderer = (LineAndShapeRenderer) plot.getRenderer();
+
+        // Устанавливаем разные цвета для каждой линии
+        for (int i = 0; i < 15; i++) {
+            renderer.setSeriesPaint(i, Color.getHSBColor((float) i / 15, 1.0f, 1.0f)); // Разные цвета для разных линий
+        }
+
+        // Добавление названий линий над концами
+        for (int i = 0; i < 15; i++) {
+            // Получаем последнее значение t и соответствующее значение y для каждой линии
+            Comparable<?> tValueEnd = String.valueOf(tValues[tValues.length - 1]); // Последнее значение t как строка (Comparable)
+            Number yValueEnd = lineDataset.getValue("L" + (i + 1), tValueEnd); // Значение y в последней точке
+
+            // Проверяем, что yValueEnd не null
+            if (yValueEnd != null) {
+                // Смещаем аннотацию вверх на 5% от значения y
+                double yOffset = yValueEnd.doubleValue() * 1.05;
+
+                // Добавляем текстовое аннотирование над точкой (чуть выше последней точки линии)
+                CategoryTextAnnotation annotation = new CategoryTextAnnotation("L" + (i + 1), tValueEnd, yOffset);
+                annotation.setFont(new Font("SansSerif", Font.BOLD, 12));
+                annotation.setPaint(Color.getHSBColor((float) i / 15, 1.0f, 0.7f)); // Цвет текста соответствует линии
+                plot.addAnnotation(annotation);
+            }
+        }
+
+        return  lineChart.createBufferedImage(chartWidth, chartHeight);
+    }
+
+
+    public static void drawTextList(BufferedImage image, List<String> lines, int startX, int startY) {
+        Graphics2D g = image.createGraphics();
+
+        // Настройки шрифта и сглаживания
+        g.setFont(new Font("Arial", Font.PLAIN, 14));
+        g.setColor(Color.BLACK); // Цвет текста
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+        // Явная заливка белым фоном
+        g.setBackground(Color.WHITE);
+        g.clearRect(0, 0, image.getWidth(), image.getHeight());
+
+        int lineHeight = g.getFontMetrics().getHeight();
+        for (int i = 0; i < lines.size(); i++) {
+            g.drawString(lines.get(i), startX, startY + (i + 1) * lineHeight);
+        }
+
+        g.dispose(); // Освобождение ресурсов
+    }
 }
 
